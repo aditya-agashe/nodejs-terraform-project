@@ -1,0 +1,8 @@
+node_modules/
+terraform/.terraform
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/handler.zip
+
+.env.development.local
+dist/
