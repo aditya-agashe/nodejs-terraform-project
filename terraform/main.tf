@@ -138,7 +138,6 @@ resource "aws_apigatewayv2_route" "history_lambda_route" {
   target    = "integrations/${aws_apigatewayv2_integration.weather_lambda_integration.id}"
 }
 
-
 resource "aws_lambda_permission" "weather_api_gw_lambda_permission" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
@@ -146,6 +145,51 @@ resource "aws_lambda_permission" "weather_api_gw_lambda_permission" {
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_apigatewayv2_api.weather_http_api.execution_arn}/*/*"
+}
+
+resource "aws_dynamodb_table" "weather_logs" {
+  name           = "WeatherLogs"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "id"
+  range_key      = "timestamp"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "timestamp"
+    type = "S"
+  }
+
+  tags = {
+    Name = "WeatherLogsTable"
+    Environment = "dev"
+  }
+}
+
+resource "aws_iam_policy" "dynamodb_write_access_policy" {
+  name   = "DynamoDBWeatherLogsWriteAccess"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "dynamodb:PutItem",
+        ],
+        Effect = "Allow",
+        Resource = "${aws_dynamodb_table.weather_logs.arn}"
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "dynamodb_access" {
+  role       = aws_iam_role.weather_lambda_role.name 
+  policy_arn = aws_iam_policy.dynamodb_write_access_policy.arn
 }
 
 output "api_endpoint" {
