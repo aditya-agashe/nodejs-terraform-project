@@ -117,6 +117,23 @@ describe('Weather Service', () => {
       });
     });
 
+    it('should return 400 if timestamp is empty', async () => {
+      const invalidEvent = { queryStringParameters: { timestamp: '' } } as unknown as APIGatewayEvent;
+
+      mockedHttpResponse.mockReturnValue({
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing query parameter: timestamp' }),
+      });
+
+      const result = await fetchHistoricalWeatherData(invalidEvent, coordinate);
+
+      expect(httpResponse).toHaveBeenCalledWith(400, JSON.stringify({ error: 'Missing query parameter: timestamp' }));
+      expect(result).toEqual({
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing query parameter: timestamp' }),
+      });
+    });
+
     it('should return 400 if timestamp is invalid', async () => {
       const invalidEvent = {
         queryStringParameters: { timestamp: 'invalid' },
