@@ -29,9 +29,9 @@ export const fetchWeatherData = async (event: APIGatewayEvent): Promise<APIGatew
     }
     await saveLogToDynamoDB(event, response);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error('There was an error fetching the current weather data:', error);
-    const response = httpResponse(500, 'Failed to fetch weather data');
+    const response = httpResponse(500, error.message);
     await saveLogToDynamoDB(event, response);
     return response;
   }
